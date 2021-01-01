@@ -1,26 +1,31 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import cache from "./cache";
+import log from "./log";
+import extensionContext from "./context";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+  log.append('Extension "vscode-pinterest" is active');
+  log.show();
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-pinterest" is now active!');
+  extensionContext.set(context);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vscode-pinterest.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
+  await cache.update();
+  const updateCacheDisposable = vscode.commands.registerCommand(
+    "vscode-pinterest.updateCache",
+    async () => {
+      await cache.update();
+    }
+  );
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-pinterest!');
-	});
+  setInterval(async () => {
+    await cache.update();
+  }, 10000);
 
-	context.subscriptions.push(disposable);
+  context.subscriptions.push(updateCacheDisposable);
 }
 
 // this method is called when your extension is deactivated

@@ -1,51 +1,77 @@
 {
-	"name": "vscode-pinterest",
-	"displayName": "vscode-pinterest",
-	"description": "Internal Pinterest extension to show decider and experiment information",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.52.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:vscode-pinterest.helloWorld"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "vscode-pinterest.helloWorld",
-				"title": "Hello World"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run package",
-		"compile": "webpack --config ./build/node-extension.webpack.config.js",
-		"watch": "webpack --watch --config ./build/node-extension.webpack.config.js",
-		"package": "webpack --mode production --devtool hidden-source-map --config ./build/node-extension.webpack.config.js",
-		"test-compile": "tsc -p ./",
-		"test-watch": "tsc -watch -p ./",
-		"pretest": "npm run test-compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.52.0",
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.0.4",
-		"@types/node": "^12.11.7",
-		"eslint": "^7.15.0",
-		"@typescript-eslint/eslint-plugin": "^4.9.0",
-		"@typescript-eslint/parser": "^4.9.0",
-		"glob": "^7.1.6",
-		"mocha": "^8.1.3",
-		"typescript": "^4.1.2",
-		"vscode-test": "^1.4.1",
-		"ts-loader": "^8.0.11",
-		"webpack": "^5.10.0",
-		"webpack-cli": "^4.2.0"
-	}
+  "name": "vscode-pinterest",
+  "displayName": "vscode-pinterest",
+  "description": "Internal Pinterest extension to show decider and experiment information",
+  "publisher": "christianvuerings",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.52.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "url": "https://github.com/christianvuerings/vscode-pinterest"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": [
+      {
+        "title": "Pinterest Internal",
+        "properties": {
+          "pinterest.enableTelemetry": {
+            "default": true,
+            "description": "Enable usage data and errors tracking (Google Analytics)",
+            "scope": "window",
+            "type": "boolean"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "vscode-pinterest.updateCache",
+        "title": "Pinterest: Update cache"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack --config ./build/node-extension.webpack.config.js",
+    "watch": "webpack --watch --config ./build/node-extension.webpack.config.js",
+    "package": "webpack --mode production --devtool hidden-source-map --config ./build/node-extension.webpack.config.js",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "pretest": "npm run test-compile && npm run lint && npm run prettier:check",
+    "prettier:check": "prettier --check .",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^12.11.7",
+    "@types/node-fetch": "^2.5.7",
+    "@types/uuid": "^8.3.0",
+    "@types/vscode": "^1.52.0",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "eslint": "^7.15.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.1.3",
+    "prettier": "2.2.1",
+    "ts-loader": "^8.0.11",
+    "typescript": "^4.1.2",
+    "vscode-test": "^1.4.1",
+    "webpack": "^5.10.0",
+    "webpack-cli": "^4.2.0"
+  },
+  "dependencies": {
+    "got": "^11.8.1",
+    "node-fetch": "^2.6.1",
+    "uuid": "^8.2.0"
+  }
 }
