@@ -2,8 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import cache from "./cache";
-import log from "./log";
+import completionProvider from "./completionProvider";
 import extensionContext from "./context";
+import log from "./log";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -21,11 +22,14 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  setInterval(async () => {
-    await cache.update();
-  }, 10000);
+  // setInterval(async () => {
+  //   await cache.update();
+  // }, 10000);
 
   context.subscriptions.push(updateCacheDisposable);
+
+  // Add auto completion provider
+  context.subscriptions.push(completionProvider());
 }
 
 // this method is called when your extension is deactivated

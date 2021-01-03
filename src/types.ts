@@ -18,6 +18,7 @@ export type Deciders = Decider[];
 export type Experiment = {
   creator: string;
   createdAt: string;
+  description?: string;
   lastUpdated: string;
   startDate: string;
   endDate?: string;

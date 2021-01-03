@@ -29,33 +29,28 @@ async function get<T>({
       "User-Agent": "vscode-pinterest",
     },
   });
-  return await response.json();
+  const jsonResponse = await response.json();
+  return jsonResponse;
 }
 
 const experiments = async () => {
   const response: {
-    result?: {
-      data: Experiments;
-    };
+    data: Experiments;
   } = await get({
     path: "experiments",
   });
 
-  const { data = [] } = response.result || {};
-  return data;
+  return response.data;
 };
 
 const deciders = async () => {
   const response: {
-    result?: {
-      data: Deciders;
-    };
+    data: Deciders;
   } = await get({
     path: "deciders",
   });
 
-  const { data = [] } = response.result || {};
-  return data;
+  return response.data;
 };
 
 export default { deciders, experiments };
