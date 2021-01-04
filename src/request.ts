@@ -40,7 +40,7 @@ const experiments = async () => {
     path: "experiments",
   });
 
-  return response.data;
+  return response.data.map((item) => ({ ...item, type: "experiment" }));
 };
 
 const deciders = async () => {
@@ -50,7 +50,7 @@ const deciders = async () => {
     path: "deciders",
   });
 
-  return response.data;
+  return response.data.map((item) => ({ ...item, type: "decider" }));
 };
 
 export default { deciders, experiments };

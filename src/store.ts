@@ -8,19 +8,6 @@ type Store = {
   experiments: Experiments;
 };
 
-const initialize = async () => {
-  const [deciders, experiments] = await Promise.all([
-    request.deciders(),
-    request.experiments(),
-  ]);
-  log.append("Cache: Updated");
-
-  update({
-    deciders,
-    experiments,
-  });
-};
-
 const get = () => {
   const store:
     | (Store & { lastUpdated: number })
@@ -28,7 +15,13 @@ const get = () => {
   return store;
 };
 
-const update = ({ deciders, experiments }: Store) => {
+const update = async () => {
+  const [deciders, experiments] = await Promise.all([
+    request.deciders(),
+    request.experiments(),
+  ]);
+  log.append("Cache: Updated");
+
   context.get().globalState.update("Pinterest", {
     lastUpdated: Date.now(),
     deciders,
@@ -36,4 +29,4 @@ const update = ({ deciders, experiments }: Store) => {
   });
 };
 
-export default { get, initialize, update };
+export default { get, update };

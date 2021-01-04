@@ -4,6 +4,36 @@ import Fuse from "fuse.js";
 import store from "./store";
 import log from "./log";
 import track from "./track";
+import { Decider, Experiment } from "./types";
+
+const parseDescription = (input?: string) => {
+  if (!input) {
+    return `(no description)`;
+  }
+  return input.replace(/\\n/g, ` `).replace(/\\r/g, ` `);
+};
+
+const deciderValue = (input?: number) => {
+  return input === -1 ? "(Not yet launched)" : `${input}%`;
+};
+
+const parseDateTime = (input?: string) => {
+  const dateTime = new Date(input + "Z");
+
+  return `${dateTime.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })} ${dateTime.toLocaleTimeString()}`;
+};
+
+const info = (item: Decider | Experiment) => {
+  if (item.type === "decider") {
+    return `Ramp: ${deciderValue(item.currentValue)}\n
+${item.createdAt ? `Created At: ${parseDateTime(item.createdAt)}\n` : ""}
+Last Updated: ${parseDateTime(item.lastUpdated)}`;
+  }
+};
 
 const triggerCharacters: string[] = ["'", '"'];
 const completionProvider = () =>
@@ -69,8 +99,8 @@ const completionProvider = () =>
           searchIndex = storeInstance.deciders;
         }
 
-        const isGroup = matched[0].startsWith("#");
         const search = matched[0].replace(/['"]/g, "");
+        console.log({ search });
         const fuse = new Fuse(searchIndex, {
           keys: ["key"],
           threshold: 0.2,
@@ -99,7 +129,12 @@ const completionProvider = () =>
           );
 
           const markdown = new vscode.MarkdownString(
-            "*test*"
+            `*${item.type}*: [Link](${new URL(item.url)})
+
+${info(item)}
+
+${parseDescription(item.description)}
+            `
             // `**[${item.value}](${new URL(
             //   `/${isGroup ? "tag" : "p"}/${item.key}/`,
             //   baseUrl
@@ -110,6 +145,8 @@ const completionProvider = () =>
           markdown.isTrusted = true;
 
           completionItem.documentation = markdown;
+          completionItem.detail =
+            item.type === "decider" ? deciderValue(item.currentValue) : "";
           // completionItem.filterText = `${item.key} ${item.value}`;
           return completionItem;
         });
