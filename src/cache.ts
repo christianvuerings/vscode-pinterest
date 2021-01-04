@@ -4,7 +4,7 @@ import track from "./track";
 
 async function update() {
   try {
-    await store.initialize();
+    await store.update();
   } catch (e) {
     log.append(e.message);
     console.error(e);

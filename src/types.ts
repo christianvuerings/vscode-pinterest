@@ -1,4 +1,5 @@
 export type Decider = {
+  type: "decider";
   url: string;
   createdAt?: string;
   description?: string;
@@ -16,6 +17,7 @@ export type Decider = {
 export type Deciders = Decider[];
 
 export type Experiment = {
+  type: "experiment";
   creator: string;
   createdAt: string;
   description?: string;
