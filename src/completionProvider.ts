@@ -8,13 +8,13 @@ import { Decider, Experiment } from "./types";
 
 const parseDescription = (input?: string) => {
   if (!input) {
-    return `(no description)`;
+    return `Description: (empty)`;
   }
-  return input.replace(/\\n/g, ` `).replace(/\\r/g, ` `);
+  return `Description: ${input.replace(/\\n/g, ` `).replace(/\\r/g, ` `)}`;
 };
 
 const deciderValue = (input?: number) => {
-  return input === -1 ? "(Not yet launched)" : `${input}%`;
+  return `${input}%`;
 };
 
 const parseDateTime = (input?: string) => {
@@ -27,12 +27,31 @@ const parseDateTime = (input?: string) => {
   })} ${dateTime.toLocaleTimeString()}`;
 };
 
-const info = (item: Decider | Experiment) => {
-  if (item.type === "decider") {
-    return `Ramp: ${deciderValue(item.currentValue)}\n
-${item.createdAt ? `Created At: ${parseDateTime(item.createdAt)}\n` : ""}
-Last Updated: ${parseDateTime(item.lastUpdated)}`;
-  }
+const ownerInfo = (item: Decider | Experiment) => {
+  return [
+    item.type === "experiment" && item.owner
+      ? `${item.owner?.split(",").length > 1 ? "Owner" : "Owner"}: ${item.owner
+          ?.split(",")
+          .map((owner) => owner.trim())
+          .map((owner) => `[@${owner}](https://who.pinadmin.com/#${owner})`)
+          .join(" / ")}`
+      : null,
+    item.type === "experiment" && item.team ? `Team: ${item.team}` : null,
+    item.type === "decider" && item.ldapInfo?.name
+      ? `Owner: [${item.ldapInfo?.name}](https://who.pinadmin.com/#${item.ldap})`
+      : null,
+  ]
+    .filter(Boolean)
+    .join("  \n");
+};
+
+const dateInfo = (item: Decider | Experiment) => {
+  return [
+    `${item.createdAt ? `Created At: ${parseDateTime(item.createdAt)}` : ""}`,
+    `Last Updated: ${parseDateTime(item.lastUpdated)}`,
+  ]
+    .filter(Boolean)
+    .join("  \n");
 };
 
 const triggerCharacters: string[] = ["'", '"'];
@@ -54,7 +73,9 @@ const completionProvider = () =>
         position: vscode.Position
       ) {
         const storeInstance = store.get();
-        log.append(`// provideCompletionItems 1 - ${storeInstance}`);
+
+        log.append("// provideCompletionItems activated");
+
         if (!storeInstance) {
           return undefined;
         }
@@ -74,33 +95,26 @@ const completionProvider = () =>
           return undefined;
         }
 
-        log.append("// provideCompletionItems 2");
-
         const linePrefix = document
           .lineAt(position)
           .text.substr(0, position.character);
-
-        log.append(`// provideCompletionItems 3 - ${linePrefix}`);
 
         const matched = linePrefix.match(/(['"][\w-_]+)$/);
         if (!matched) {
           return undefined;
         }
 
-        log.append(`// provideCompletionItems 4 - ${matched}`);
-
         let searchIndex = [
           ...storeInstance.deciders,
           ...storeInstance.experiments,
         ];
-        if (linePrefix.toLocaleLowerCase().includes("experiment")) {
-          searchIndex = storeInstance.experiments;
-        } else if (linePrefix.toLocaleLowerCase().includes("decider")) {
+        if (linePrefix.toLocaleLowerCase().includes("decider")) {
           searchIndex = storeInstance.deciders;
+        } else if (linePrefix.toLocaleLowerCase().includes("experiment")) {
+          searchIndex = storeInstance.experiments;
         }
 
         const search = matched[0].replace(/['"]/g, "");
-        console.log({ search });
         const fuse = new Fuse(searchIndex, {
           keys: ["key"],
           threshold: 0.2,
@@ -118,10 +132,6 @@ const completionProvider = () =>
           value: String(results.length),
         });
 
-        console.log({ results });
-
-        // return undefined;
-
         return results.map(({ item }) => {
           const completionItem = new vscode.CompletionItem(
             item.key,
@@ -129,12 +139,14 @@ const completionProvider = () =>
           );
 
           const markdown = new vscode.MarkdownString(
-            `*${item.type}*: [Link](${new URL(item.url)})
-
-${info(item)}
+            `[${
+              item.type === "experiment" ? "Helium Link" : "Adminapp Link"
+            }](${new URL(item.url)})
 
 ${parseDescription(item.description)}
-            `
+
+${ownerInfo(item)}\n
+${dateInfo(item)}`
             // `**[${item.value}](${new URL(
             //   `/${isGroup ? "tag" : "p"}/${item.key}/`,
             //   baseUrl
@@ -146,7 +158,9 @@ ${parseDescription(item.description)}
 
           completionItem.documentation = markdown;
           completionItem.detail =
-            item.type === "decider" ? deciderValue(item.currentValue) : "";
+            item.type === "decider"
+              ? `Ramp: ${deciderValue(item.currentValue)} (${item.type})`
+              : `(${item.type})`;
           // completionItem.filterText = `${item.key} ${item.value}`;
           return completionItem;
         });

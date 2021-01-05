@@ -50,7 +50,11 @@ const deciders = async () => {
     path: "deciders",
   });
 
-  return response.data.map((item) => ({ ...item, type: "decider" }));
+  return response.data
+    .filter(
+      ({ currentValue }) => currentValue !== -1 && currentValue !== undefined
+    )
+    .map((item) => ({ ...item, type: "decider" }));
 };
 
 export default { deciders, experiments };
