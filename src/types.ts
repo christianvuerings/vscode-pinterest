@@ -11,6 +11,10 @@ export type Decider = {
     name: string;
     email: string;
   };
+  ownerInfo?: {
+    username: string;
+    fullName: string;
+  };
   key: string;
 };
 
