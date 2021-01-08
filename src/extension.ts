@@ -9,6 +9,7 @@ import {
 } from "vscode";
 import cache from "./cache";
 import DeciderExperimentCompletionItemProvider from "./DeciderExperimentCompletionItemProvider";
+import DeciderExperimentHoverProvider from "./DeciderExperimentHoverProvider";
 import extensionContext from "./context";
 import log from "./log";
 
@@ -30,10 +31,10 @@ export function addDeciderExperimentProviders(): Disposable {
       new DeciderExperimentCompletionItemProvider(),
       ...DeciderExperimentCompletionItemProvider.triggerCharacters
     ),
-    // languages.registerHoverProvider(
-    //   selector,
-    //   new JSONHoverProvider(contribution)
-    // )
+    languages.registerHoverProvider(
+      documentSelector,
+      new DeciderExperimentHoverProvider()
+    ),
   ];
   return Disposable.from(...subscriptions);
 }

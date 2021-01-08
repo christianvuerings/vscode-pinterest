@@ -1,73 +1,63 @@
-import * as vscode from "vscode";
-import { URL } from "url";
 import Fuse from "fuse.js";
 import store from "./store";
 import log from "./log";
 import track from "./track";
 import { Decider, Experiment } from "./types";
+import { getDetail, getInfo } from "./experimentDeciderInfo";
+import { MarkdownString } from "vscode";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  CompletionItemProvider,
+  CompletionList,
+  Position,
+  TextDocument,
+} from "vscode";
 
-const parseDescription = (input?: string) => {
-  if (!input) {
-    return `Description: (empty)`;
+class DeciderExperimentCompletionItem implements CompletionItem {
+  kind?: CompletionItemKind;
+  label: string;
+  detail?: string;
+  documentation?: MarkdownString;
+  readonly deciderExperiment: Decider | Experiment;
+
+  constructor(
+    label: string,
+    kind: CompletionItemKind,
+    deciderExperiment: Decider | Experiment
+  ) {
+    this.label = label;
+    this.kind = kind;
+    this.deciderExperiment = deciderExperiment;
   }
-  return `Description: ${input.replace(/\\n/g, ` `).replace(/\\r/g, ` `)}`;
-};
 
-const deciderValue = (input?: number) => {
-  return `${input}%`;
-};
+  async resolve(): Promise<this> {
+    const { deciderExperiment } = this;
+    this.documentation = await getInfo(deciderExperiment);
+    this.detail = await getDetail(deciderExperiment);
 
-const parseDateTime = (input?: string) => {
-  const dateTime = new Date(input + "Z");
-
-  return `${dateTime.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })} ${dateTime.toLocaleTimeString()}`;
-};
-
-const ownerInfo = (item: Decider | Experiment) => {
-  return [
-    item.type === "experiment" && item.owner
-      ? `${item.owner?.split(",").length > 1 ? "Owner" : "Owner"}: ${item.owner
-          ?.split(",")
-          .map((owner) => owner.trim())
-          .map((owner) => `[@${owner}](https://who.pinadmin.com/#${owner})`)
-          .join(" / ")}`
-      : null,
-    item.type === "experiment" && item.team ? `Team: ${item.team}` : null,
-    item.type === "decider" && item.ldapInfo?.name
-      ? `Owner: [${item.ldapInfo?.name}](https://who.pinadmin.com/#${item.ldap})`
-      : item.type === "decider" && item.ownerInfo
-      ? `Owner: [${item.ownerInfo.fullName}](https://pinterest.com/${item.ownerInfo.username}/) ([AdminApp](https://adminapp.pinterest.com/220calave/user/${item.owner}/))`
-      : item.type === "decider" && item.owner
-      ? `Owner: [${item.owner}](https://adminapp.pinterest.com/220calave/user/${item.owner}/) (Suspended / deactivated account)`
-      : null,
-  ]
-    .filter(Boolean)
-    .join("  \n");
-};
-
-const dateInfo = (item: Decider | Experiment) => {
-  return [
-    `${item.createdAt ? `Created At: ${parseDateTime(item.createdAt)}` : ""}`,
-    `Last Updated: ${parseDateTime(item.lastUpdated)}`,
-  ]
-    .filter(Boolean)
-    .join("  \n");
-};
+    return this;
+  }
+}
 
 class DeciderExperimentCompletionItemProvider
-  implements vscode.CompletionItemProvider<vscode.CompletionItem> {
+  implements CompletionItemProvider<CompletionItem> {
   public static readonly triggerCharacters = ["'", '"'];
 
   constructor() {}
 
+  async resolveCompletionItem(
+    item: DeciderExperimentCompletionItem
+  ): Promise<DeciderExperimentCompletionItem | undefined> {
+    return item instanceof DeciderExperimentCompletionItem
+      ? item.resolve()
+      : item;
+  }
+
   public async provideCompletionItems(
-    document: vscode.TextDocument,
-    position: vscode.Position
-  ): Promise<vscode.CompletionList<vscode.CompletionItem> | undefined> {
+    document: TextDocument,
+    position: Position
+  ): Promise<CompletionList<CompletionItem> | undefined> {
     const storeInstance = store.get();
 
     log.append("// provideCompletionItems activated");
@@ -125,37 +115,14 @@ class DeciderExperimentCompletionItemProvider
       value: String(results.length),
     });
 
-    return new vscode.CompletionList(
+    return new CompletionList(
       results.map(({ item }) => {
-        const completionItem = new vscode.CompletionItem(
+        const completionItem = new DeciderExperimentCompletionItem(
           item.key,
-          vscode.CompletionItemKind.Text
+          CompletionItemKind.Text,
+          item
         );
 
-        const markdown = new vscode.MarkdownString(
-          `[${
-            item.type === "experiment" ? "Helium Link" : "Adminapp Link"
-          }](${new URL(item.url)})
-
-${parseDescription(item.description)}
-
-${ownerInfo(item)}\n
-${dateInfo(item)}`
-          // `**[${item.value}](${new URL(
-          //   `/${isGroup ? "tag" : "p"}/${item.key}/`,
-          //   baseUrl
-          // )})**`.concat(
-          //   item.detail ? `\n\n${item.detail.replace(/\s\s#/g, " - ")}` : ""
-          // )
-        );
-        markdown.isTrusted = true;
-
-        completionItem.documentation = markdown;
-        completionItem.detail =
-          item.type === "decider"
-            ? `Ramp: ${deciderValue(item.currentValue)} (${item.type})`
-            : `(${item.type})`;
-        // completionItem.filterText = `${item.key} ${item.value}`;
         return completionItem;
       })
     );
