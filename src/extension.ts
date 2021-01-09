@@ -43,11 +43,10 @@ export function addDeciderExperimentProviders(): Disposable {
 // your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
   log.append('Extension "vscode-pinterest" is active');
-  log.show();
 
   extensionContext.set(context);
 
-  await cache.update();
+  cache.update();
   const updateCacheDisposable = commands.registerCommand(
     "vscode-pinterest.updateCache",
     async () => {
@@ -55,9 +54,9 @@ export async function activate(context: ExtensionContext) {
     }
   );
 
-  // setInterval(async () => {
-  //   await cache.update();
-  // }, 10000);
+  setInterval(async () => {
+    await cache.update();
+  }, 10000);
 
   context.subscriptions.push(updateCacheDisposable);
 

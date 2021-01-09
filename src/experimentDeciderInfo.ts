@@ -1,6 +1,11 @@
+import AbortController from "abort-controller";
+import fetch from "node-fetch";
 import { URL } from "url";
 import { MarkdownString } from "vscode";
+import log from "./log";
 import { Decider, Experiment } from "./types";
+
+const controller = new AbortController();
 
 const parseDescription = (input?: string) => {
   if (!input) {
@@ -24,13 +29,13 @@ const parseDateTime = (input?: string) => {
     year: "numeric",
     month: "short",
     day: "numeric",
-  })} ${dateTime.toLocaleTimeString()}`;
+  })} at ${dateTime.toLocaleTimeString()}`;
 };
 
 const ownerInfo = (item: Decider | Experiment) => {
   return [
     item.type === "experiment" && item.owner
-      ? `${item.owner?.split(",").length > 1 ? "Owner" : "Owner"}: ${item.owner
+      ? `${item.owner?.split(",").length > 1 ? "Owners" : "Owner"}: ${item.owner
           ?.split(",")
           .map((owner) => owner.trim())
           .map((owner) => `[@${owner}](https://who.pinadmin.com/#${owner})`)
@@ -51,12 +56,59 @@ const ownerInfo = (item: Decider | Experiment) => {
 
 const dateInfo = (item: Decider | Experiment) => {
   return [
-    `${item.createdAt ? `Created At: ${parseDateTime(item.createdAt)}` : ""}`,
+    `${item.createdAt ? `Created: ${parseDateTime(item.createdAt)}` : ""}`,
     `Last Updated: ${parseDateTime(item.lastUpdated)}`,
   ]
     .filter(Boolean)
     .join("  \n");
 };
+
+async function getRampInfo(deciderExperiment: Decider | Experiment) {
+  if (deciderExperiment.type === "decider") {
+    return `Ramp: ${deciderValue(deciderExperiment.currentValue)}`;
+  } else {
+    const fetchTimeout = setTimeout(() => {
+      controller.abort();
+    }, 1000);
+    try {
+      const heliumResponse: {
+        data: [
+          {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            group_ranges: {
+              [group: string]: {
+                percent: number;
+              };
+            };
+          }
+        ];
+      } = await (
+        await fetch(
+          `https://helium.pinadmin.com/ds/experiment/config_history/?params={"experiment":"${deciderExperiment.key}","with_filters":true,"limit":1}`,
+          { signal: controller.signal }
+        )
+      ).json();
+      const ramp = Object.entries(heliumResponse.data[0].group_ranges)
+        .reduce((acc: string[], currentValue) => {
+          const [key, value] = currentValue;
+          return [
+            ...acc,
+            `| ${key} | \`${Math.round(value.percent * 1000) / 10}%\` |`,
+          ];
+        }, [])
+        .join("\n");
+
+      return ["| **Group** | **Percent** |", "| :--- | ---: |", ramp].join(
+        "\n"
+      );
+    } catch (error) {
+      log.append(`getRampInfo: ${error.message}`);
+      return `Ramp: (Could not fetch data)`;
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
+  }
+}
 
 export function getInfo(
   deciderExperiment: Decider | Experiment | null
@@ -65,28 +117,28 @@ export function getInfo(
     return undefined;
   }
 
-  return new Promise((resolve, reject) => {
-    const markdown = new MarkdownString(
-      `[${
-        deciderExperiment.type === "experiment"
-          ? "Helium Link"
-          : "Adminapp Link"
-      }](${new URL(deciderExperiment.url)})
+  return new Promise(async (resolve, reject) => {
+    const ramp = await getRampInfo(deciderExperiment);
+    const markdown = new MarkdownString()
+      .appendMarkdown(parseDescription(deciderExperiment.description))
+      .appendMarkdown("\n\n")
+      .appendMarkdown(ramp)
+      .appendMarkdown("\n\n")
+      .appendMarkdown(ownerInfo(deciderExperiment))
+      .appendMarkdown("\n\n")
+      .appendMarkdown(
+        `Link: [${
+          deciderExperiment.type === "experiment" ? "Helium" : "Adminapp"
+        }](${new URL(deciderExperiment.url)})`
+      )
+      .appendMarkdown("\n\n")
+      .appendMarkdown(dateInfo(deciderExperiment));
 
-  ${parseDescription(deciderExperiment.description)}
-
-  ${ownerInfo(deciderExperiment)}\n
-  ${dateInfo(deciderExperiment)}`
-    );
     markdown.isTrusted = true;
     resolve(markdown);
   });
 }
 
-export function getDetail(deciderExperiment: Decider | Experiment) {
-  return deciderExperiment.type === "decider"
-    ? `Ramp: ${deciderValue(deciderExperiment.currentValue)} (${
-        deciderExperiment.type
-      })`
-    : `(${deciderExperiment.type})`;
+export function getDetail(deciderExperiment: Decider | Experiment): string {
+  return `(${deciderExperiment.type})`;
 }
