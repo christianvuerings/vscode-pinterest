@@ -110,33 +110,31 @@ async function getRampInfo(deciderExperiment: Decider | Experiment) {
   }
 }
 
-export function getInfo(
+export async function getInfo(
   deciderExperiment: Decider | Experiment | null
-): Thenable<MarkdownString | undefined> | undefined {
+): Promise<MarkdownString | undefined> {
   if (!deciderExperiment) {
     return undefined;
   }
 
-  return new Promise(async (resolve, reject) => {
-    const ramp = await getRampInfo(deciderExperiment);
-    const markdown = new MarkdownString()
-      .appendMarkdown(parseDescription(deciderExperiment.description))
-      .appendMarkdown("\n\n")
-      .appendMarkdown(ramp)
-      .appendMarkdown("\n\n")
-      .appendMarkdown(ownerInfo(deciderExperiment))
-      .appendMarkdown("\n\n")
-      .appendMarkdown(
-        `Link: [${
-          deciderExperiment.type === "experiment" ? "Helium" : "Adminapp"
-        }](${new URL(deciderExperiment.url)})`
-      )
-      .appendMarkdown("\n\n")
-      .appendMarkdown(dateInfo(deciderExperiment));
+  const ramp = await getRampInfo(deciderExperiment);
+  const markdown = new MarkdownString()
+    .appendMarkdown(parseDescription(deciderExperiment.description))
+    .appendMarkdown("\n\n")
+    .appendMarkdown(ramp)
+    .appendMarkdown("\n\n")
+    .appendMarkdown(ownerInfo(deciderExperiment))
+    .appendMarkdown("\n\n")
+    .appendMarkdown(
+      `Link: [${
+        deciderExperiment.type === "experiment" ? "Helium" : "Adminapp"
+      }](${new URL(deciderExperiment.url)})`
+    )
+    .appendMarkdown("\n\n")
+    .appendMarkdown(dateInfo(deciderExperiment));
 
-    markdown.isTrusted = true;
-    resolve(markdown);
-  });
+  markdown.isTrusted = true;
+  return markdown;
 }
 
 export function getDetail(deciderExperiment: Decider | Experiment): string {

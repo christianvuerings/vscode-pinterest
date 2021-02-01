@@ -33,7 +33,7 @@ async function get<T>({
   return jsonResponse;
 }
 
-const experiments = async () => {
+const experiments = async (): Promise<Experiments> => {
   const response: {
     data: Experiments;
   } = await get({
@@ -43,7 +43,7 @@ const experiments = async () => {
   return response.data.map((item) => ({ ...item, type: "experiment" }));
 };
 
-const deciders = async () => {
+const deciders = async (): Promise<Deciders> => {
   const response: {
     data: Deciders;
   } = await get({

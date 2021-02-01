@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 const outputChannel = vscode.window.createOutputChannel("Pinterest");
-const append = (text: string) => {
+const append = (text: string): string => {
   const now = new Date();
   const output = `[${[now.getHours(), now.getMinutes(), now.getSeconds()]
     .map((value) => (value + "").padStart(2, "0"))
@@ -10,7 +10,7 @@ const append = (text: string) => {
   return output;
 };
 
-const show = () => {
+const show = (): void => {
   outputChannel.show();
 };
 

@@ -18,7 +18,7 @@ const event = async ({
   action: "Activate" | "Count" | "List" | "Open URL" | "Error";
   label: string;
   value?: string;
-}) => {
+}): Promise<void> => {
   // Only track usage when the user enables telemetry for this extension
   const enableTelemetry = await configuration.enableTelemetry();
   if (!enableTelemetry) {

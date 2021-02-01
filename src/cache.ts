@@ -2,7 +2,7 @@ import log from "./log";
 import store from "./store";
 import track from "./track";
 
-async function update() {
+async function update(): Promise<void> {
   try {
     await store.update();
   } catch (e) {
