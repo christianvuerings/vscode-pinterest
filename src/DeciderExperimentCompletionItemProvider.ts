@@ -44,8 +44,6 @@ class DeciderExperimentCompletionItemProvider
   implements CompletionItemProvider<CompletionItem> {
   public static readonly triggerCharacters = ["'", '"'];
 
-  constructor() {}
-
   async resolveCompletionItem(
     item: DeciderExperimentCompletionItem
   ): Promise<DeciderExperimentCompletionItem | undefined> {

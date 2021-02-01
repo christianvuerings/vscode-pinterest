@@ -8,14 +8,14 @@ type Store = {
   experiments: Experiments;
 };
 
-const get = () => {
+const get = (): Store | undefined => {
   const store:
     | (Store & { lastUpdated: number })
     | undefined = context.get().globalState.get("Pinterest");
   return store;
 };
 
-const update = async () => {
+const update = async (): Promise<void> => {
   const [deciders, experiments] = await Promise.all([
     request.deciders(),
     request.experiments(),

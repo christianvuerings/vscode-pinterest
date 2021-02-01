@@ -12,6 +12,7 @@ import DeciderExperimentCompletionItemProvider from "./DeciderExperimentCompleti
 import DeciderExperimentHoverProvider from "./DeciderExperimentHoverProvider";
 import extensionContext from "./context";
 import log from "./log";
+import track from "./track";
 
 // https://code.visualstudio.com/docs/languages/identifiers
 const documentSelector: DocumentSelector = [
@@ -41,10 +42,16 @@ export function addDeciderExperimentProviders(): Disposable {
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export async function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext): Promise<void> {
   log.append('Extension "vscode-pinterest-internal" is active');
 
   extensionContext.set(context);
+
+  track.event({
+    category: "Event",
+    action: "Activate",
+    label: "Extension",
+  });
 
   cache.update();
   const updateCacheDisposable = commands.registerCommand(
@@ -65,4 +72,4 @@ export async function activate(context: ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+// export function deactivate() {}
