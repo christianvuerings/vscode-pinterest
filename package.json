@@ -10,6 +10,9 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "Pinterest"
+  ],
   "repository": {
     "url": "https://github.com/christianvuerings/vscode-pinterest-internal"
   },
