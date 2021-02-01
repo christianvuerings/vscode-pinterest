@@ -63,7 +63,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   setInterval(async () => {
     await cache.update();
-  }, 10000);
+  }, 60000);
 
   context.subscriptions.push(updateCacheDisposable);
 
