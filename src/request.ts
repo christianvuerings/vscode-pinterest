@@ -12,7 +12,7 @@ async function get<T>({
   };
   path: "deciders" | "experiments";
 }): Promise<T> {
-  const baseUrl = "https://itp-dev-cvuerings.pinterdev.com/";
+  const baseUrl = "https://capi.pinadmin.com/";
   const url = new URL(`api/${path}`, baseUrl);
 
   if (fields) {
@@ -26,7 +26,7 @@ async function get<T>({
   const response = await fetch(url, {
     headers: {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      "User-Agent": "vscode-pinterest",
+      "User-Agent": "vscode-pinterest-internal",
     },
   });
   const jsonResponse = await response.json();

@@ -1,6 +1,6 @@
 # Internal Pinterest Extension for VSCode
 
-This is the README for your extension "vscode-pinterest". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "vscode-pinterest-internal". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

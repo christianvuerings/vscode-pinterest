@@ -1,8 +1,8 @@
 {
-  "name": "vscode-pinterest",
-  "displayName": "vscode-pinterest",
+  "name": "vscode-pinterest-internal",
+  "displayName": "Pinterest Internal",
   "description": "Internal Pinterest extension to show decider and experiment information",
-  "publisher": "christianvuerings",
+  "publisher": "pinterest",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.52.0"
@@ -11,7 +11,7 @@
     "Other"
   ],
   "repository": {
-    "url": "https://github.com/christianvuerings/vscode-pinterest"
+    "url": "https://github.com/christianvuerings/vscode-pinterest-internal"
   },
   "activationEvents": [
     "*"
@@ -33,7 +33,7 @@
     ],
     "commands": [
       {
-        "command": "vscode-pinterest.updateCache",
+        "command": "vscode-pinterest-internal.updateCache",
         "title": "Pinterest: Update cache"
       }
     ]

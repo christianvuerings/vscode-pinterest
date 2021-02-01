@@ -42,7 +42,7 @@ export function addDeciderExperimentProviders(): Disposable {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
-  log.append('Extension "vscode-pinterest" is active');
+  log.append('Extension "vscode-pinterest-internal" is active');
 
   extensionContext.set(context);
 
